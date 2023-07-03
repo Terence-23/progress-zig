@@ -98,11 +98,14 @@ pub fn init(writer: anytype) Typed(@TypeOf(writer)) {
 }
 
 test "initialization" {
+    std.debug.print("init test", .{});
     var stdout = std.io.getStdOut().writer();
     var bar = Progress.init(stdout);
+    _ = bar;
 }
 
 test "display bar" {
+    std.debug.print("display test", .{});
     var stdout = std.io.getStdOut().writer();
     var bar = Progress.init(stdout);
     bar.total = 300;
