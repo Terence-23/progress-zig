@@ -18,11 +18,12 @@ fn Typed(comptime Writer: type) type {
         display_fraction: bool = false,
         display_percentage: bool = true,
         writer: Writer,
+        finish_message: []const u8,
 
         const Self = @This();
 
-        pub fn init(writer: Writer) Self {
-            return .{ .writer = writer };
+        pub fn init(writer: Writer, finish_message: []const u8) Self {
+            return .{ .writer = writer, .finish_message = finish_message };
         }
 
         /// Draw the current status of the progress bar.
@@ -73,6 +74,7 @@ fn Typed(comptime Writer: type) type {
             self.progress += 1;
             try self.draw();
             if (self.progress == self.total) {
+                try self.writer.print("\n{s}\n", .{self.finish_message});
                 return null;
             }
             return self.progress;
@@ -85,6 +87,7 @@ fn Typed(comptime Writer: type) type {
             self.progress += step;
             try self.draw();
             if (self.progress == self.total) {
+                try self.writer.print("\n{s}\n", .{self.finish_message});
                 return null;
             }
             return self.progress;
@@ -93,21 +96,21 @@ fn Typed(comptime Writer: type) type {
 }
 
 /// Initialize a new progress bar with a writer, typically stdout or stderr.
-pub fn init(writer: anytype) Typed(@TypeOf(writer)) {
-    return Typed(@TypeOf(writer)).init(writer);
+pub fn init(writer: anytype, finish_message: []const u8) Typed(@TypeOf(writer)) {
+    return Typed(@TypeOf(writer)).init(writer, finish_message);
 }
 
 test "initialization" {
     std.debug.print("init test", .{});
     var stdout = std.io.getStdOut().writer();
-    var bar = Progress.init(stdout);
+    var bar = Progress.init(stdout, "");
     _ = bar;
 }
 
 test "display bar" {
     std.debug.print("display test", .{});
     var stdout = std.io.getStdOut().writer();
-    var bar = Progress.init(stdout);
+    var bar = Progress.init(stdout, "Finish");
     bar.total = 300;
     bar.width = 50;
     bar.display_fraction = true;
